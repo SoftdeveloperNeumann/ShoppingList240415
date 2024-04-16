@@ -16,7 +16,8 @@ class ShoppingMemoDatasource(context: Context) {
     private val columns = arrayOf(
         ShoppingMemoDbHelper.COLUMN_ID,
         ShoppingMemoDbHelper.COLUMN_QUANTITY,
-        ShoppingMemoDbHelper.COLUMN_PRODUCT
+        ShoppingMemoDbHelper.COLUMN_PRODUCT,
+        ShoppingMemoDbHelper.COLUMN_ISSELECTED
     )
 
     val allShoppingMemos: List<ShoppingMemo>
@@ -50,20 +51,22 @@ class ShoppingMemoDatasource(context: Context) {
         val idIndex = cursor.getColumnIndex(ShoppingMemoDbHelper.COLUMN_ID)
         val quantityIndex = cursor.getColumnIndex(ShoppingMemoDbHelper.COLUMN_QUANTITY)
         val productIndex = cursor.getColumnIndex(ShoppingMemoDbHelper.COLUMN_PRODUCT)
+        val isSelectedIndex = cursor.getColumnIndex(ShoppingMemoDbHelper.COLUMN_ISSELECTED)
 
         val id = cursor.getLong(idIndex)
         val quantity = cursor.getInt(quantityIndex)
         val product = cursor.getString(productIndex)
+        val isSelected = cursor.getInt(isSelectedIndex) != 0
 
-        return ShoppingMemo(quantity,product,id)
+        return ShoppingMemo(quantity, product, id, isSelected)
     }
 
-    fun createShoppingMemo(quantity:Int, product:String): ShoppingMemo{
+    fun createShoppingMemo(quantity: Int, product: String): ShoppingMemo {
         val values = ContentValues().apply {
-            put(ShoppingMemoDbHelper.COLUMN_QUANTITY,quantity)
-            put(ShoppingMemoDbHelper.COLUMN_PRODUCT,product)
+            put(ShoppingMemoDbHelper.COLUMN_QUANTITY, quantity)
+            put(ShoppingMemoDbHelper.COLUMN_PRODUCT, product)
         }
-        val insertId = db?.insert(ShoppingMemoDbHelper.TABLE_SHOPPING_LIST,null,values)?: -1
+        val insertId = db?.insert(ShoppingMemoDbHelper.TABLE_SHOPPING_LIST, null, values) ?: -1
 
         Log.d(TAG, "createShoppingMemo: die insert ist $insertId")
 
@@ -83,7 +86,20 @@ class ShoppingMemoDatasource(context: Context) {
         return memo
     }
 
-
+    fun updateShoppingMemo(quantity: Int, product: String, id: Long, isSelected: Boolean) {
+        val intIsSelected = if(isSelected) 1 else 0
+        val values = ContentValues().apply {
+            put(ShoppingMemoDbHelper.COLUMN_QUANTITY,quantity)
+            put(ShoppingMemoDbHelper.COLUMN_PRODUCT,product)
+            put(ShoppingMemoDbHelper.COLUMN_ISSELECTED,intIsSelected)
+        }
+        db?.update(
+            ShoppingMemoDbHelper.TABLE_SHOPPING_LIST,
+            values,
+            "${ShoppingMemoDbHelper.COLUMN_ID} = $id",
+            null
+        )
+    }
 
     fun open() {
         db = helper.writableDatabase
