@@ -3,6 +3,7 @@ package com.example.shoppinglist
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
 import android.view.ActionMode
 import android.view.Menu
@@ -130,7 +131,15 @@ class MainActivity : AppCompatActivity() {
                         touchedModePositions.forEach { key, value ->
                             if(value){
                                 val memo = binding.lvShoppingMemos.getItemAtPosition(key) as ShoppingMemo
+                                val dialog = createShoppingMemoDialog(memo)
 
+                                // Die im Dialog verwendete View muss zwingend neu gezeichnet werden
+                                val view = dialogBinding.root
+                                if(view.parent != null){
+                                    (view.parent as ViewGroup).removeAllViews()
+                                }
+                                dialog?.setView(view)
+                                dialog?.show()
                             }
                         }
                     }
@@ -156,8 +165,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createShoppingMemoDialog(memo: ShoppingMemo): AlertDialog?{
+        val builder = AlertDialog.Builder(this)
+        dialogBinding.etChangeQuantity.setText(memo.quantity.toString())
+        dialogBinding.etChangeProduct.setText(memo.product)
 
-        return null
+        builder.setTitle("Eintrag ändern")
+            .setPositiveButton("Speichern"){dialog,_ ->
+                val quantity = dialogBinding.etChangeQuantity.text.toString()
+                val product = dialogBinding.etChangeProduct.text.toString()
+
+                if(TextUtils.isEmpty(product) || TextUtils.isEmpty(quantity))
+                    return@setPositiveButton
+                datasource.updateShoppingMemo(quantity.toInt(),product,memo.id,memo.isSelected)
+                showAllShoppingMemos()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Abbrechen"){dialog,_ ->
+                dialog.cancel()
+            }
+
+        return builder.create()
     }
 
 
