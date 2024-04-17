@@ -4,9 +4,14 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
+import android.view.ActionMode
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView.MultiChoiceModeListener
 import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.shoppinglist.databinding.ActivityMainBinding
@@ -23,13 +28,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = "Einkaufsliste"
-
         datasource = ShoppingMemoDatasource(this)
         initShoppingMemoListView()
         activateAddButton()
-
+        initContextualActionBar()
     }
 
 
@@ -91,6 +93,40 @@ class MainActivity : AppCompatActivity() {
 
         }
     }
+
+    private fun initContextualActionBar() {
+        binding.lvShoppingMemos.choiceMode = ListView.CHOICE_MODE_MULTIPLE_MODAL
+        binding.lvShoppingMemos.setMultiChoiceModeListener(object : MultiChoiceModeListener {
+            override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+                menuInflater.inflate(R.menu.menu_contextual,menu)
+                return true
+            }
+
+            override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+                val editItem = menu?.findItem(R.id.action_edit)
+                editItem?.isVisible = binding.lvShoppingMemos.checkedItemCount == 1
+                return false
+            }
+
+            override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+                return false
+            }
+
+            override fun onDestroyActionMode(mode: ActionMode?) {
+
+            }
+
+            override fun onItemCheckedStateChanged(
+                mode: ActionMode?,
+                position: Int,
+                id: Long,
+                checked: Boolean
+            ) {
+                mode?.invalidate()
+            }
+        })
+    }
+
 
 
     private fun showAllShoppingMemos() {
