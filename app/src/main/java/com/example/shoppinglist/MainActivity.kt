@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.util.forEach
 import com.example.shoppinglist.databinding.ActivityMainBinding
 
 
@@ -105,11 +106,24 @@ class MainActivity : AppCompatActivity() {
             override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
                 val editItem = menu?.findItem(R.id.action_edit)
                 editItem?.isVisible = binding.lvShoppingMemos.checkedItemCount == 1
-                return false
+                return true
             }
 
             override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-                return false
+                val touchedModePositions = binding.lvShoppingMemos.checkedItemPositions
+                when(item?.itemId){
+                    R.id.action_delete ->{
+                        touchedModePositions.forEach { key, value ->
+                            if(value){
+                                val memo = binding.lvShoppingMemos.getItemAtPosition(key) as ShoppingMemo
+                                datasource.deleteShoppingMemo(memo)
+                            }
+                        }
+                    }
+                }
+                showAllShoppingMemos()
+                mode?.finish()
+                return true
             }
 
             override fun onDestroyActionMode(mode: ActionMode?) {
