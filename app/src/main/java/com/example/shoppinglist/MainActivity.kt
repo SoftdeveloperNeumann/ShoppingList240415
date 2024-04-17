@@ -13,20 +13,24 @@ import android.widget.AbsListView.MultiChoiceModeListener
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.forEach
 import com.example.shoppinglist.databinding.ActivityMainBinding
+import com.example.shoppinglist.databinding.DialogEditShoppingmemoBinding
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var dialogBinding: DialogEditShoppingmemoBinding
     private lateinit var datasource: ShoppingMemoDatasource
     private val TAG = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        dialogBinding = DialogEditShoppingmemoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         datasource = ShoppingMemoDatasource(this)
@@ -47,10 +51,10 @@ class MainActivity : AppCompatActivity() {
                 val view = super.getView(position, convertView, parent) as TextView
                 val memo = binding.lvShoppingMemos.getItemAtPosition(position) as ShoppingMemo
 
-                if(memo.isSelected){
+                if (memo.isSelected) {
                     view.paintFlags = view.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                    view.setTextColor(Color.rgb(175,175,175))
-                }else{
+                    view.setTextColor(Color.rgb(175, 175, 175))
+                } else {
                     view.paintFlags = view.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
                     view.setTextColor(Color.DKGRAY)
                 }
@@ -99,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         binding.lvShoppingMemos.choiceMode = ListView.CHOICE_MODE_MULTIPLE_MODAL
         binding.lvShoppingMemos.setMultiChoiceModeListener(object : MultiChoiceModeListener {
             override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-                menuInflater.inflate(R.menu.menu_contextual,menu)
+                menuInflater.inflate(R.menu.menu_contextual, menu)
                 return true
             }
 
@@ -111,12 +115,22 @@ class MainActivity : AppCompatActivity() {
 
             override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
                 val touchedModePositions = binding.lvShoppingMemos.checkedItemPositions
-                when(item?.itemId){
-                    R.id.action_delete ->{
+                when (item?.itemId) {
+                    R.id.action_delete -> {
+                        touchedModePositions.forEach { key, value ->
+                            if (value) {
+                                val memo =
+                                    binding.lvShoppingMemos.getItemAtPosition(key) as ShoppingMemo
+                                datasource.deleteShoppingMemo(memo)
+                            }
+                        }
+                    }
+
+                    R.id.action_edit -> {
                         touchedModePositions.forEach { key, value ->
                             if(value){
                                 val memo = binding.lvShoppingMemos.getItemAtPosition(key) as ShoppingMemo
-                                datasource.deleteShoppingMemo(memo)
+
                             }
                         }
                     }
@@ -141,6 +155,10 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun createShoppingMemoDialog(memo: ShoppingMemo): AlertDialog?{
+
+        return null
+    }
 
 
     private fun showAllShoppingMemos() {
